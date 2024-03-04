@@ -49,7 +49,7 @@ void setup() {
   aerController.begin(&aerInput, &aerOutput, &aerSetpoint, aerP, aerI, aerD);
   aerServo.attach(10);
 
-  eleController.begin(&eleInput, &eleOutput, &aerSetpoint, eleP, eleI, eleD);
+  eleController.begin(&eleInput, &eleOutput, &eleSetpoint, eleP, eleI, eleD);
   eleServo.attach(9);
 
   // Start the PPM function on PIN A0
