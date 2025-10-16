@@ -6,7 +6,7 @@
 /* What pins things are on. All output pins must be PWN supported! */
 #define PPM_PIN A0
 #define AER_PIN 9
-#define ELE_PIN 10
+#define ELE_PIN 8
 #define RUD_PIN 11
 #define THROT_PIN 3
 
@@ -24,7 +24,7 @@ double currentRoll;
 double aerOutput;
 double aerP = 0.08;
 double aerI = 0.05;
-double aerD = 0.0;
+double aerD = 0.01;
 
 // Rotation around the east-west axis is called pitch and is changed by the elevator
 ArduPID eleController;
@@ -32,9 +32,9 @@ Servo eleServo;
 double targetPitch;
 double currentPitch;
 double eleOutput;
-double eleP = 0.5;
-double eleI = 0.25;
-double eleD = 0.1;
+double eleP = 0.08;
+double eleI = 0.05;
+double eleD = 0.01;
 
 #ifdef HAVE_RUDDER
 // Rotation around the up-down axis is called yaw and is changed by the rudder
@@ -144,10 +144,10 @@ void loop() {
 
     gyro.getAngularVelocity(&gx, &gy, &gz);
 #ifdef HAVE_RUDDER
-    currentYaw += gx * ratio;
+    currentYaw += gy * ratio;
 #endif
     currentRoll += gy * ratio;
-    currentPitch += gz * ratio;
+    currentPitch += gx * ratio;
 
 
     //dbg(currentPitch);
