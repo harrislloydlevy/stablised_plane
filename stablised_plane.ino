@@ -3,41 +3,52 @@
 #include "ITG3200.h"
 #include "ArduPID.h"
 
-#define dbg(var) Serial.print(#var); Serial.print(":"); Serial.print(var); Serial.print(" ")
+/* What pins things are on. All output pins must be PWN supported! */
+#define PPM_PIN A0
+#define AER_PIN 9
+#define ELE_PIN 10
+#define RUD_PIN 11
+#define THROT_PIN 3
+
+#define dbg(var) \
+  Serial.print(#var); \
+  Serial.print(":"); \
+  Serial.print(var); \
+  Serial.print(" ")
 
 // Rotation around the forward axis is called roll, and is changed by the aelirons
 ArduPID aerController;
-Servo   aerServo;
-double  targetRoll;
-double  currentRoll;
-double  aerOutput;
-double  aerP = 1;
-double  aerI = 0;
-double  aerD = 0;
+Servo aerServo;
+double targetRoll;
+double currentRoll;
+double aerOutput;
+double aerP = 2;
+double aerI = 0.5;
+double aerD = 0.5;
 
 // Rotation around the east-west axis is called pitch and is changed by the elevator
 ArduPID eleController;
-Servo   eleServo;
-double  targetPitch;
-double  currentPitch;
-double  eleOutput;
-double  eleP = 1;
-double  eleI = 0;
-double  eleD = 0;
+Servo eleServo;
+double targetPitch;
+double currentPitch;
+double eleOutput;
+double eleP = 2;
+double eleI = 0.5;
+double eleD = 0.5;
 
 #ifdef HAVE_RUDDER
 // Rotation around the up-down axis is called yaw and is changed by the rudder
 ArduPID rudController;
-Servo   rudServo;
-double  targetYaw;
-double  currentYaw;
-double  rudOutput;
-double  rudP = 1;
-double  rudI = 0;
-double  rudD = 0;
+Servo rudServo;
+double targetYaw;
+double currentYaw;
+double rudOutput;
+double rudP = 2;
+double rudI = 0.5;
+double rudD = 0.5;
 #endif
 
-// Throttle is simply throttle :).
+// Throttle needed is simply throttle :).
 double throttle;
 
 // PPM channel layout (update for your situation)
@@ -53,8 +64,10 @@ double throttle;
 // Loop interval time
 const long ppmInterval = 100;
 const long gyroInterval = 100;
+const long servoInterval = 200;
 unsigned long previousGyroMillis = 0;
 unsigned long previousPpmMillis = 0;
+unsigned long previousServoMillis = 0;
 
 ITG3200 gyro;
 
@@ -75,26 +88,26 @@ void setup() {
 
   // Start the PPM receiver on PIN A0
   ppm.begin(A0, false);
-  
+
   // Gyro is on generic i2c so no explictit pin needed.
   gyro.init();
-  gyro.zeroCalibrate(200,10);//sample 200 times to calibrate and it will take 200*10ms
+  gyro.zeroCalibrate(200, 10);  //sample 200 times to calibrate and it will take 200*10ms
 
-  // Set initial zero of angle of plane
-  #ifdef HAVE_RUDDER
+// Set initial zero of angle of plane
+#ifdef HAVE_RUDDER
   currentYaw = 0;
-    targetYaw = 0;
-  #endif
+  targetYaw = 0;
+#endif
   currentRoll = 0;
   currentPitch = 0;
-    // Set initial zero of angle of plane
+  // Set initial zero of angle of plane
 
   targetRoll = 0;
   targetPitch = 0;
 }
 
 void loop() {
-  float gx, gy, gz; // Angular momentum in deg/sec in each axis
+  float gx, gy, gz;  // Angular momentum in deg/sec in each axis
 
   // Interval at which the PPM is updated
   unsigned long currentMillis = millis();
@@ -107,40 +120,40 @@ void loop() {
     // Acquiring all the channels values
     //aerSetpoint = map(ppm.read_channel(ROLL), 1000, 2000, 0, 180);
     //eleSetpoint = map(ppm.read_channel(PITCH), 1000, 2000, 0, 180);
-    targetRoll = ppm.read_channel(ROLL);
-    targetPitch = ppm.read_channel(PITCH);
-  #ifdef HAVE_RUDDER
-    targetYaw = ppm.read_channel(YAW);
-  #endif
+    targetRoll = map(ppm.read_channel(ROLL), 1000, 2000, -90, 90);
+    targetPitch = map(ppm.read_channel(PITCH), 1000, 2000, -90, 90);
+#ifdef HAVE_RUDDER
+    targetYaw = map(ppm.read_channel(YAW), 1000, 2000, -90, 90);
+#endif
     throttle = ppm.read_channel(THROTTLE);
 
     dbg(throttle);
     dbg(targetRoll);
     dbg(targetPitch);
-      #ifdef HAVE_RUDDER
+#ifdef HAVE_RUDDER
     dbg(targetYaw);
-    #endif
+#endif
   }
 
   // If we have passed the cycle for reading the velocity, then read in and reintegrate
   // our target angle
   if ((currentMillis - previousGyroMillis) >= gyroInterval) {
-    double ratio = (((double)currentMillis/1000 - (double)previousGyroMillis/1000));
+    double ratio = (((double)currentMillis / 1000 - (double)previousGyroMillis / 1000));
 
 
-    gyro.getAngularVelocity(&gx,&gy, &gz);
-  #ifdef HAVE_RUDDER
+    gyro.getAngularVelocity(&gx, &gy, &gz);
+#ifdef HAVE_RUDDER
     currentYaw += gx * ratio;
-  #endif
+#endif
     currentRoll += gy * ratio;
     currentPitch += gz * ratio;
 
     dbg(currentMillis);
     dbg(previousGyroMillis);
     dbg(ratio);
-      #ifdef HAVE_RUDDER
+#ifdef HAVE_RUDDER
     dbg(currentYaw);
-    #endif
+#endif
     dbg(currentRoll);
     dbg(currentPitch);
     dbg(gx);
@@ -150,32 +163,34 @@ void loop() {
     previousGyroMillis = currentMillis;
   }
 
+  if ((currentMillis - previousServoMillis) >= servoInterval) {
+    int throttleOut;
+
+    // Map thtrottle from PPM in 0-1000 to 8 bit value
+    throttleOut = map(throttle, 1000, 2000, 0, 254);
+    // First set the throttle, nice and simple
+    analogWrite(THROT_PIN, throttleOut);
+
+    aerController.compute();
+    eleController.compute();
+    
+    aerServo.write(aerOutput);
+    eleServo.write(eleOutput);
+
+    dbg(throttleOut);
+    dbg(aerOutput);
+    dbg(eleOutput);
+
+#ifdef HAVE_RUDDER
+    rudController.compute();
+    rudServo.write(rudOutput);
+#endif
 
 
-  Serial.println();
-  //aerInput = map(gx, -1000, 1000, -90, 90);
-  //eleInput = map(gz, -1000, 1000, -90, 90);
-  
-
-
-  aerController.compute();
-  eleController.compute();
-  //aerController.debug(&Serial, "aerController", PRINT_INPUT |     // Can include or comment out any of these terms to print
+    //aerController.debug(&Serial, "aerController", PRINT_INPUT |     // Can include or comment out any of these terms to print
     //                                                      PRINT_OUTPUT |  // in the Serial plotter
-      //                                                    PRINT_SETPOINT | PRINT_BIAS | PRINT_P | PRINT_I | PRINT_D);
+    //                                                    PRINT_SETPOINT | PRINT_BIAS | PRINT_P | PRINT_I | PRINT_D);
 
-  aerServo.write(aerOutput);
-  eleServo.write(eleOutput);
+  }
+  Serial.println(); // Needed to end all the debug macros
 }
-
-
-
-
-// Returns what angle (from 0 to 180) the aeriolon should be set at based on the detected angle of the plane
-// based on the target angle. 90 is neutral, 0 is full title left, 180 is full tilt right
-//int aerOutput(int currentRoll, int targetRoll) {
-  //return 90 - (currentRoll - targetRoll);
-//}
-//int eleOutput(int currentPitch, int targetPitch) {
- // return 90 - (currentPitch - targetPitch);
-//}
