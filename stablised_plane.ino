@@ -1,4 +1,3 @@
-// Include the PPM library
 #include "ppm.h"
 #include "Servo.h"
 #include "ITG3200.h"
@@ -26,6 +25,7 @@ double  eleP = 1;
 double  eleI = 0;
 double  eleD = 0;
 
+#ifdef HAVE_RUDDER
 // Rotation around the up-down axis is called yaw and is changed by the rudder
 ArduPID rudController;
 Servo   rudServo;
@@ -35,6 +35,7 @@ double  rudOutput;
 double  rudP = 1;
 double  rudI = 0;
 double  rudD = 0;
+#endif
 
 // Throttle is simply throttle :).
 double throttle;
@@ -67,8 +68,10 @@ void setup() {
   eleController.begin(&currentPitch, &eleOutput, &targetPitch, eleP, eleI, eleD);
   eleServo.attach(9);
 
-  aerController.begin(&currentYaw, &aerOutput, &targetYaw, aerP, aerI, aerD);
-  aerServo.attach(8);
+#ifdef HAVE_RUDDER
+  rudController.begin(&currentYaw, &aerOutput, &targetYaw, aerP, aerI, aerD);
+  rudServo.attach(8);
+#endif
 
   // Start the PPM receiver on PIN A0
   ppm.begin(A0, false);
@@ -78,11 +81,14 @@ void setup() {
   gyro.zeroCalibrate(200,10);//sample 200 times to calibrate and it will take 200*10ms
 
   // Set initial zero of angle of plane
+  #ifdef HAVE_RUDDER
   currentYaw = 0;
+    targetYaw = 0;
+  #endif
   currentRoll = 0;
   currentPitch = 0;
     // Set initial zero of angle of plane
-  targetYaw = 0;
+
   targetRoll = 0;
   targetPitch = 0;
 }
@@ -103,13 +109,17 @@ void loop() {
     //eleSetpoint = map(ppm.read_channel(PITCH), 1000, 2000, 0, 180);
     targetRoll = ppm.read_channel(ROLL);
     targetPitch = ppm.read_channel(PITCH);
+  #ifdef HAVE_RUDDER
     targetYaw = ppm.read_channel(YAW);
+  #endif
     throttle = ppm.read_channel(THROTTLE);
 
     dbg(throttle);
     dbg(targetRoll);
     dbg(targetPitch);
+      #ifdef HAVE_RUDDER
     dbg(targetYaw);
+    #endif
   }
 
   // If we have passed the cycle for reading the velocity, then read in and reintegrate
@@ -119,14 +129,18 @@ void loop() {
 
 
     gyro.getAngularVelocity(&gx,&gy, &gz);
+  #ifdef HAVE_RUDDER
     currentYaw += gx * ratio;
+  #endif
     currentRoll += gy * ratio;
     currentPitch += gz * ratio;
 
     dbg(currentMillis);
     dbg(previousGyroMillis);
     dbg(ratio);
+      #ifdef HAVE_RUDDER
     dbg(currentYaw);
+    #endif
     dbg(currentRoll);
     dbg(currentPitch);
     dbg(gx);
