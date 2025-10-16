@@ -22,9 +22,9 @@ Servo aerServo;
 double targetRoll;
 double currentRoll;
 double aerOutput;
-double aerP = 2;
-double aerI = 0.5;
-double aerD = 0.5;
+double aerP = 0.08;
+double aerI = 0.05;
+double aerD = 0.0;
 
 // Rotation around the east-west axis is called pitch and is changed by the elevator
 ArduPID eleController;
@@ -32,9 +32,9 @@ Servo eleServo;
 double targetPitch;
 double currentPitch;
 double eleOutput;
-double eleP = 2;
-double eleI = 0.5;
-double eleD = 0.5;
+double eleP = 0.5;
+double eleI = 0.25;
+double eleD = 0.1;
 
 #ifdef HAVE_RUDDER
 // Rotation around the up-down axis is called yaw and is changed by the rudder
@@ -76,13 +76,16 @@ void setup() {
   Serial.begin(9600);
 
   aerController.begin(&currentRoll, &aerOutput, &targetRoll, aerP, aerI, aerD);
+  aerController.setOutputLimits(-127, 127); // Allow negative values. Mapped back to 0 - 225 later
   aerServo.attach(10);
 
   eleController.begin(&currentPitch, &eleOutput, &targetPitch, eleP, eleI, eleD);
+  eleController.setOutputLimits(-127, 127); // Allow negative values. Mapped back to 0 - 225 later
   eleServo.attach(9);
 
 #ifdef HAVE_RUDDER
   rudController.begin(&currentYaw, &aerOutput, &targetYaw, aerP, aerI, aerD);
+  rudController.setOuputLimits
   rudServo.attach(8);
 #endif
 
@@ -98,12 +101,16 @@ void setup() {
   currentYaw = 0;
   targetYaw = 0;
 #endif
-  currentRoll = 0;
-  currentPitch = 0;
+
+
+  // NOTE: All degrees are form 0 to 180 wiht 90 being "upright/straight this is because
+  // the PID logic works better if no negatives aRe invovled.
+  currentRoll = 90;
+  currentPitch = 90;
   // Set initial zero of angle of plane
 
-  targetRoll = 0;
-  targetPitch = 0;
+  targetRoll = 90;
+  targetPitch = 90;
 }
 
 void loop() {
@@ -120,19 +127,13 @@ void loop() {
     // Acquiring all the channels values
     //aerSetpoint = map(ppm.read_channel(ROLL), 1000, 2000, 0, 180);
     //eleSetpoint = map(ppm.read_channel(PITCH), 1000, 2000, 0, 180);
-    targetRoll = map(ppm.read_channel(ROLL), 1000, 2000, -90, 90);
-    targetPitch = map(ppm.read_channel(PITCH), 1000, 2000, -90, 90);
+    targetRoll = map(ppm.read_channel(ROLL), 1000, 2000, 0, 180);
+    targetPitch = map(ppm.read_channel(PITCH), 1000, 2000, 0, 180);
 #ifdef HAVE_RUDDER
     targetYaw = map(ppm.read_channel(YAW), 1000, 2000, -90, 90);
 #endif
     throttle = ppm.read_channel(THROTTLE);
 
-    dbg(throttle);
-    dbg(targetRoll);
-    dbg(targetPitch);
-#ifdef HAVE_RUDDER
-    dbg(targetYaw);
-#endif
   }
 
   // If we have passed the cycle for reading the velocity, then read in and reintegrate
@@ -148,17 +149,8 @@ void loop() {
     currentRoll += gy * ratio;
     currentPitch += gz * ratio;
 
-    dbg(currentMillis);
-    dbg(previousGyroMillis);
-    dbg(ratio);
-#ifdef HAVE_RUDDER
-    dbg(currentYaw);
-#endif
-    dbg(currentRoll);
-    dbg(currentPitch);
-    dbg(gx);
-    dbg(gy);
-    dbg(gz);
+
+    //dbg(currentPitch);
 
     previousGyroMillis = currentMillis;
   }
@@ -173,23 +165,24 @@ void loop() {
 
     aerController.compute();
     eleController.compute();
-    
-    aerServo.write(aerOutput);
-    eleServo.write(eleOutput);
-
-    dbg(throttleOut);
-    dbg(aerOutput);
+    //dbg(throttleOut);
+    dbg(currentPitch);
+    dbg(targetPitch);
     dbg(eleOutput);
+    
+    // Outputs are -128 to +128 so normalise them before wriring to servo
+    aerServo.write(aerOutput + 127);
+    eleServo.write(eleOutput + 127);
+    
+
+
+
+    //dbg(eleOutput);
 
 #ifdef HAVE_RUDDER
     rudController.compute();
     rudServo.write(rudOutput);
 #endif
-
-
-    //aerController.debug(&Serial, "aerController", PRINT_INPUT |     // Can include or comment out any of these terms to print
-    //                                                      PRINT_OUTPUT |  // in the Serial plotter
-    //                                                    PRINT_SETPOINT | PRINT_BIAS | PRINT_P | PRINT_I | PRINT_D);
 
   }
   Serial.println(); // Needed to end all the debug macros
