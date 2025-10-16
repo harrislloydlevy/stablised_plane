@@ -1,0 +1,27 @@
+digraph G {
+  rankdir=TB
+  rcController -> rcReceiver [label="RC PPM Signal"]
+  rcReceiver -> ppmModule [label="Single Pin PPM Signal"]
+  gy85 -> inertiaModule [label="I2C Inertia"]
+  
+  subgraph cluster_Arduino {
+     label="Software (Arduino)"
+     color=grey
+     style=filled
+     ppmModule -> axisController  [label="Target Yaw/Pitch/Roll"]
+     inertiaModule -> axisController [label="Current Yaw/PitchRoll"]
+     servoController [label="Servo Controllerx3"]
+     axisController [label="Axis Controller (PID)x3"]
+  }
+  
+  subgraph cluster_sensors {
+      label="Sensors"
+      color=lightblue
+      style=filled
+      rcReceiver
+      gy85
+  }
+  axisController -> servoController [label="Target Position"]
+  servoController -> servo [label="PWM Signal"]
+  servo [label="Servo x3"]
+}
