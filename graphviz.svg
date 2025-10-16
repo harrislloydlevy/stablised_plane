@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="337pt" height="534pt" viewBox="0.00 0.00 337.00 534.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 529.6)">
+<title>G</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-529.6 333,-529.6 333,4 -4,4"/>
+<g id="clust1" class="cluster">
+<title>cluster_Arduino</title>
+<polygon fill="grey" stroke="grey" points="8,-80.8 8,-335.2 321,-335.2 321,-80.8 8,-80.8"/>
+<text xml:space="preserve" text-anchor="middle" x="164.5" y="-318.6" font-family="Times,serif" font-size="14.00">Software (Arduino)</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_sensors</title>
+<polygon fill="lightblue" stroke="lightblue" points="36,-370 36,-446.8 236,-446.8 236,-370 36,-370"/>
+<text xml:space="preserve" text-anchor="middle" x="136" y="-430.2" font-family="Times,serif" font-size="14.00">Sensors</text>
+</g>
+<!-- rcController -->
+<g id="node1" class="node">
+<title>rcController</title>
+<ellipse fill="none" stroke="black" cx="97" cy="-507.6" rx="58.23" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="97" y="-503.4" font-family="Times,serif" font-size="14.00">rcController</text>
+</g>
+<!-- rcReceiver -->
+<g id="node2" class="node">
+<title>rcReceiver</title>
+<ellipse fill="none" stroke="black" cx="97" cy="-396" rx="52.85" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="97" y="-391.8" font-family="Times,serif" font-size="14.00">rcReceiver</text>
+</g>
+<!-- rcController&#45;&gt;rcReceiver -->
+<g id="edge1" class="edge">
+<title>rcController-&gt;rcReceiver</title>
+<path fill="none" stroke="black" d="M97,-489.47C97,-472.44 97,-446 97,-425.75"/>
+<polygon fill="black" stroke="black" points="100.5,-425.88 97,-415.88 93.5,-425.88 100.5,-425.88"/>
+<text xml:space="preserve" text-anchor="middle" x="141.74" y="-459" font-family="Times,serif" font-size="14.00">RC PPM Signal</text>
+</g>
+<!-- ppmModule -->
+<g id="node3" class="node">
+<title>ppmModule</title>
+<ellipse fill="none" stroke="black" cx="74" cy="-284.4" rx="58.25" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="74" y="-280.2" font-family="Times,serif" font-size="14.00">ppmModule</text>
+</g>
+<!-- rcReceiver&#45;&gt;ppmModule -->
+<g id="edge2" class="edge">
+<title>rcReceiver-&gt;ppmModule</title>
+<path fill="none" stroke="black" d="M82.09,-378.35C78.1,-372.88 74.32,-366.53 72.25,-360 67.55,-345.24 67.63,-328 69.04,-313.82"/>
+<polygon fill="black" stroke="black" points="72.46,-314.6 70.27,-304.24 65.52,-313.71 72.46,-314.6"/>
+<text xml:space="preserve" text-anchor="middle" x="136.62" y="-347.4" font-family="Times,serif" font-size="14.00">Single Pin PPM Signal</text>
+</g>
+<!-- axisController -->
+<g id="node6" class="node">
+<title>axisController</title>
+<ellipse fill="none" stroke="black" cx="152" cy="-195.6" rx="105.45" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="152" y="-191.4" font-family="Times,serif" font-size="14.00">Axis Controller (PID)x3</text>
+</g>
+<!-- ppmModule&#45;&gt;axisController -->
+<g id="edge4" class="edge">
+<title>ppmModule-&gt;axisController</title>
+<path fill="none" stroke="black" d="M57,-266.74C48.31,-256.17 41.06,-242.49 48.86,-231.6 54.05,-224.36 60.82,-218.6 68.42,-214.02"/>
+<polygon fill="black" stroke="black" points="69.82,-217.23 77.08,-209.52 66.59,-211.02 69.82,-217.23"/>
+<text xml:space="preserve" text-anchor="middle" x="112.43" y="-235.8" font-family="Times,serif" font-size="14.00">Target Yaw/Pitch/Roll</text>
+</g>
+<!-- gy85 -->
+<g id="node4" class="node">
+<title>gy85</title>
+<ellipse fill="none" stroke="black" cx="198" cy="-396" rx="30.35" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="198" y="-391.8" font-family="Times,serif" font-size="14.00">gy85</text>
+</g>
+<!-- inertiaModule -->
+<g id="node5" class="node">
+<title>inertiaModule</title>
+<ellipse fill="none" stroke="black" cx="221" cy="-284.4" rx="65.74" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="221" y="-280.2" font-family="Times,serif" font-size="14.00">inertiaModule</text>
+</g>
+<!-- gy85&#45;&gt;inertiaModule -->
+<g id="edge3" class="edge">
+<title>gy85-&gt;inertiaModule</title>
+<path fill="none" stroke="black" d="M201.59,-377.87C205.18,-360.76 210.77,-334.15 215.03,-313.86"/>
+<polygon fill="black" stroke="black" points="218.42,-314.75 217.04,-304.25 211.57,-313.32 218.42,-314.75"/>
+<text xml:space="preserve" text-anchor="middle" x="239.33" y="-347.4" font-family="Times,serif" font-size="14.00">I2C Inertia</text>
+</g>
+<!-- inertiaModule&#45;&gt;axisController -->
+<g id="edge5" class="edge">
+<title>inertiaModule-&gt;axisController</title>
+<path fill="none" stroke="black" d="M207.7,-266.66C197.8,-254.22 184.11,-236.99 172.78,-222.74"/>
+<polygon fill="black" stroke="black" points="175.64,-220.71 166.68,-215.06 170.16,-225.07 175.64,-220.71"/>
+<text xml:space="preserve" text-anchor="middle" x="257.42" y="-235.8" font-family="Times,serif" font-size="14.00">Current Yaw/PitchRoll</text>
+</g>
+<!-- servoController -->
+<g id="node7" class="node">
+<title>servoController</title>
+<ellipse fill="none" stroke="black" cx="152" cy="-106.8" rx="85.33" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="152" y="-102.6" font-family="Times,serif" font-size="14.00">Servo Controllerx3</text>
+</g>
+<!-- axisController&#45;&gt;servoController -->
+<g id="edge6" class="edge">
+<title>axisController-&gt;servoController</title>
+<path fill="none" stroke="black" d="M152,-177.45C152,-165.76 152,-149.99 152,-136.42"/>
+<polygon fill="black" stroke="black" points="155.5,-136.72 152,-126.72 148.5,-136.72 155.5,-136.72"/>
+<text xml:space="preserve" text-anchor="middle" x="194.97" y="-147" font-family="Times,serif" font-size="14.00">Target Position</text>
+</g>
+<!-- servo -->
+<g id="node8" class="node">
+<title>servo</title>
+<ellipse fill="none" stroke="black" cx="152" cy="-18" rx="45.64" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="152" y="-13.8" font-family="Times,serif" font-size="14.00">Servo x3</text>
+</g>
+<!-- servoController&#45;&gt;servo -->
+<g id="edge7" class="edge">
+<title>servoController-&gt;servo</title>
+<path fill="none" stroke="black" d="M152,-88.65C152,-76.96 152,-61.19 152,-47.62"/>
+<polygon fill="black" stroke="black" points="155.5,-47.92 152,-37.92 148.5,-47.92 155.5,-47.92"/>
+<text xml:space="preserve" text-anchor="middle" x="188.36" y="-58.2" font-family="Times,serif" font-size="14.00">PWM Signal</text>
+</g>
+</g>
+</svg>
